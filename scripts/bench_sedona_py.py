@@ -26,8 +26,8 @@ def time_func(name, func, *args, **kwargs):
     print(f"{name}: {avg_time:.4f} s (avg of 5)")
     
     key_map = {
-        "Load Points": "load_points",
-        "Load Regions": "load_regions",
+        "Load Points": "read_points",
+        "Load Regions": "read_regions",
         "Spatial Join": "spatial_join",
         "Buffer Points": "buffer_pts"
     }

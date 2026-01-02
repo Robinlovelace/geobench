@@ -43,21 +43,21 @@ Run on 100,000 points and 16 polygons (Regions).
 
 | system      | language | operation    | ops_per_sec |
 |:------------|:---------|:-------------|------------:|
-| sf          | R        | read_points  |        2.94 |
-| sf          | R        | read_regions |      165.24 |
-| sf          | R        | spatial_join |        1.13 |
-| sf          | R        | buffer_pts   |        0.36 |
-| geopandas   | Python   | read_points  |        4.86 |
-| geopandas   | Python   | read_regions |      114.73 |
-| geopandas   | Python   | buffer_pts   |        0.69 |
-| geopandas   | Python   | spatial_join |       21.00 |
-| sedonadb-py | Python   | load_points  |       27.75 |
-| sedonadb-py | Python   | load_regions |      252.66 |
-| sedonadb-py | Python   | buffer_pts   |        1.58 |
-| sedonadb-py | Python   | spatial_join |        7.71 |
-| sedonadb-r  | R        | read_points  |       33.34 |
-| sedonadb-r  | R        | read_regions |       85.43 |
-| sedonadb-r  | R        | buffer_pts   |       20.15 |
-| sedonadb-r  | R        | spatial_join |       43.16 |
+| sf          | R        | read_points  |        2.89 |
+| sf          | R        | read_regions |      183.16 |
+| sf          | R        | spatial_join |        1.12 |
+| sf          | R        | buffer_pts   |        0.35 |
+| geopandas   | Python   | read_points  |        4.97 |
+| geopandas   | Python   | read_regions |      112.48 |
+| geopandas   | Python   | buffer_pts   |        0.63 |
+| geopandas   | Python   | spatial_join |       15.65 |
+| sedonadb-py | Python   | read_points  |       19.82 |
+| sedonadb-py | Python   | read_regions |      264.77 |
+| sedonadb-py | Python   | buffer_pts   |        1.52 |
+| sedonadb-py | Python   | spatial_join |        3.71 |
+| sedonadb-r  | R        | read_points  |       29.61 |
+| sedonadb-r  | R        | read_regions |      142.42 |
+| sedonadb-r  | R        | buffer_pts   |       20.67 |
+| sedonadb-r  | R        | spatial_join |       47.52 |
 
 ![](README_files/figure-commonmark/plot-results-1.png)
