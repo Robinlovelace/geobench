@@ -7,13 +7,13 @@ print("Starting Python (sedona.db) Benchmarks [NZ]...")
 
 sd = sedona.db.connect()
 
-pts_gdf = gpd.read_file("nz.gpkg", layer="points", engine="pyogrio")
-regions_gdf = gpd.read_file("nz.gpkg", layer="regions", engine="pyogrio")
+pts_gdf = gpd.read_file("nz_points.gpkg", engine="pyogrio")
+regions_gdf = gpd.read_file("nz_regions.gpkg", engine="pyogrio")
 
 def log_result(operation, time_sec):
     ops_per_sec = 1 / time_sec if time_sec > 0 else 0
     with open("results.csv", "a") as f:
-        f.write(f"sedonadb-py,Python,{operation},{ops_per_sec:.2f}\n")
+        f.write(f"sedonadb-pandas,Python,{operation},{ops_per_sec:.2f}\n")
 
 def time_func(name, func, *args, **kwargs):
     times = []
@@ -70,9 +70,6 @@ query = f"""
     FROM points AS p
     LEFT JOIN regions AS r ON ST_Intersects(p.{geom_col}, r.{geom_col})
 """
-
-def run_query(query):
-    return sd.sql(query).to_pandas()
 
 try:
     time_func("Spatial Join", run_query, query)

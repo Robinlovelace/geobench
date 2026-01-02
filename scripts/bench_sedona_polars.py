@@ -8,8 +8,8 @@ print("Starting Python (sedona.db + Polars) Benchmarks [NZ]...")
 
 sd = sedona.db.connect()
 
-pts_gdf = gpd.read_file("nz.gpkg", layer="points", engine="pyogrio")
-regions_gdf = gpd.read_file("nz.gpkg", layer="regions", engine="pyogrio")
+pts_gdf = gpd.read_file("nz_points.gpkg", engine="pyogrio")
+regions_gdf = gpd.read_file("nz_regions.gpkg", engine="pyogrio")
 
 def log_result(operation, time_sec):
     ops_per_sec = 1 / time_sec if time_sec > 0 else 0

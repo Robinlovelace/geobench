@@ -14,16 +14,16 @@ message("Starting R (sf) Benchmarks [NZ]...")
 
 # 1. Read
 bench_read <- microbenchmark(
-  read_points = { pts <- st_read("nz.gpkg", layer = "points", quiet = TRUE) },
-  read_regions = { regions <- st_read("nz.gpkg", layer = "regions", quiet = TRUE) },
+  read_points = { pts <- st_read("nz_points.gpkg", quiet = TRUE) },
+  read_regions = { regions <- st_read("nz_regions.gpkg", quiet = TRUE) },
   times = 5
 )
 print(bench_read)
 log_result("read_points", bench_read[bench_read$expr == "read_points",])
 log_result("read_regions", bench_read[bench_read$expr == "read_regions",])
 
-pts <- st_read("nz.gpkg", layer = "points", quiet = TRUE)
-regions <- st_read("nz.gpkg", layer = "regions", quiet = TRUE)
+pts <- st_read("nz_points.gpkg", quiet = TRUE)
+regions <- st_read("nz_regions.gpkg", quiet = TRUE)
 
 # 2. Spatial Join
 # Join 'Name' from regions to points

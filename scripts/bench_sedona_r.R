@@ -9,13 +9,13 @@ message("Starting R (sedonadb) Benchmarks [NZ]...")
 log_result <- function(operation, benchmark) {
   mean_sec <- mean(benchmark$time) / 1e9
   ops_per_sec <- 1 / mean_sec
-  cat(sprintf("sedonadb-r,R,%s,%.2f\n", operation, ops_per_sec), 
+  cat(sprintf("sedonadb-sf,R,%s,%.2f\n", operation, ops_per_sec), 
       file = "results.csv", append = TRUE)
 }
 
 # Read data
-pts_sf <- st_read("nz.gpkg", layer = "points", quiet = TRUE)
-regions_sf <- st_read("nz.gpkg", layer = "regions", quiet = TRUE)
+pts_sf <- st_read("nz_points.gpkg", quiet = TRUE)
+regions_sf <- st_read("nz_regions.gpkg", quiet = TRUE)
 
 # 1. Load
 bench_load_pts <- microbenchmark(

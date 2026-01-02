@@ -30,11 +30,11 @@ def time_func(name, func, *args, **kwargs):
     return res
 
 # 1. Read
-def read_layer(layer):
-    return gpd.read_file("nz.gpkg", layer=layer, engine="pyogrio")
+def read_file(filename):
+    return gpd.read_file(filename, engine="pyogrio")
 
-pts = time_func("Read Points", read_layer, "points")
-regions = time_func("Read Regions", read_layer, "regions")
+pts = time_func("Read Points", read_file, "nz_points.gpkg")
+regions = time_func("Read Regions", read_file, "nz_regions.gpkg")
 
 # 2. Buffer
 # Buffer by 1000m
