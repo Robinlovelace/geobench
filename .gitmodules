@@ -1,0 +1,3 @@
+[submodule "docker_submodule"]
+	path = docker_submodule
+	url = https://github.com/geocompx/docker
