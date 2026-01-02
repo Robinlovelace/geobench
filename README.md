@@ -43,14 +43,14 @@ Run on 100,000 points and 16 polygons (Regions).
 
 | system    | language | operation    | time_sec |
 |:----------|:---------|:-------------|---------:|
-| sf        | R        | read_points  | 0.129007 |
-| sf        | R        | read_regions | 0.002635 |
-| sf        | R        | spatial_join | 0.335455 |
-| geopandas | Python   | read_points  | 0.066549 |
-| geopandas | Python   | read_regions | 0.002993 |
-| geopandas | Python   | spatial_join | 0.029323 |
-| sedonadb  | Python   | load_points  | 0.023744 |
-| sedonadb  | Python   | load_regions | 0.001317 |
-| sedonadb  | Python   | spatial_join | 0.038358 |
+| sf        | R        | read_points  | 0.127889 |
+| sf        | R        | read_regions | 0.002479 |
+| sf        | R        | spatial_join | 0.336157 |
+| geopandas | Python   | read_points  | 0.067595 |
+| geopandas | Python   | read_regions | 0.002972 |
+| geopandas | Python   | spatial_join | 0.029471 |
+| sedonadb  | Python   | read_points  | 0.024173 |
+| sedonadb  | Python   | read_regions | 0.001395 |
+| sedonadb  | Python   | spatial_join | 0.041024 |
 
 ![](README_files/figure-commonmark/plot-results-1.png)

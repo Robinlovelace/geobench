@@ -52,13 +52,14 @@ if (file.exists("results.csv")) {
   library(ggplot2)
   results <- read.csv("results.csv")
   
-  ggplot(results, aes(x = time_sec, y = system, fill = language)) +
+  ggplot(results, aes(x = system, y = time_sec, fill = language)) +
     geom_col() +
-    facet_grid(. ~ operation) +
-    scale_x_log10() +
+    facet_wrap(~ operation, scales = "free_y") +
+    scale_y_log10() +
     theme_minimal() +
     labs(title = "Benchmark Results by Operation",
-         x = "Time (seconds, log scale)", y = "System") +
-    theme(legend.position = "bottom")
+         y = "Time (seconds, log scale)", x = "System") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          legend.position = "bottom")
 }
 ```
