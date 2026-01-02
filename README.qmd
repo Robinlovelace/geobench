@@ -53,7 +53,7 @@ if (file.exists("results.csv")) {
   
   ggplot(results, aes(x = system, y = ops_per_sec, fill = system)) +
     geom_col() +
-    facet_wrap(~ operation, ncol = 3, scales = "free_y") +
+    facet_wrap(~ operation, nrow = 1, scales = "free_y") +
     scale_fill_brewer(palette = "Set2") +
     theme_minimal() +
     labs(title = "Benchmark Results",
