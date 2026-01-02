@@ -5,6 +5,12 @@ format: gfm
 
 Benchmarks for spatial data operations using the `spData::nz` dataset (New Zealand regions).
 
+## Source Code
+
+-   [sf (R)](scripts/bench_r.R)
+-   [geopandas (Python)](scripts/bench_py.py)
+-   [sedonadb (Python)](scripts/bench_sedona_py.py)
+
 ## Experimental Setup
 
 We use the New Zealand regions (16 polygons) and generate 100,000 random points within the bounding box of New Zealand.
@@ -32,11 +38,26 @@ ggplot() +
 
 Run on 100,000 points and 16 polygons (Regions).
 
-```{r results, echo=FALSE, message=FALSE}
+```{r results-table, echo=FALSE, message=FALSE}
 if (file.exists("results.csv")) {
   results <- read.csv("results.csv")
   knitr::kable(results)
 } else {
   print("No results found yet.")
+}
+```
+
+```{r plot-results, echo=FALSE, message=FALSE, warning=FALSE}
+if (file.exists("results.csv")) {
+  library(ggplot2)
+  results <- read.csv("results.csv")
+  
+  ggplot(results, aes(x = system, y = time_sec, fill = language)) +
+    geom_col() +
+    facet_wrap(~operation, scales = "free_y") +
+    theme_minimal() +
+    labs(title = "Benchmark Results by Operation",
+         y = "Time (seconds)", x = "System") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 }
 ```

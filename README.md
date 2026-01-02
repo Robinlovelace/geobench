@@ -4,6 +4,12 @@
 Benchmarks for spatial data operations using the `spData::nz` dataset
 (New Zealand regions).
 
+## Source Code
+
+- [sf (R)](scripts/bench_r.R)
+- [geopandas (Python)](scripts/bench_py.py)
+- [sedonadb (Python)](scripts/bench_sedona_py.py)
+
 ## Experimental Setup
 
 We use the New Zealand regions (16 polygons) and generate 100,000 random
@@ -46,3 +52,5 @@ Run on 100,000 points and 16 polygons (Regions).
 | sedonadb  | Python   | load_points  | 0.023744 |
 | sedonadb  | Python   | load_regions | 0.001317 |
 | sedonadb  | Python   | spatial_join | 0.038358 |
+
+![](README_files/figure-commonmark/plot-results-1.png)
