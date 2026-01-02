@@ -33,9 +33,16 @@ Run on 100,000 points and 100 polygons.
 | sedonadb (proj) | Python | load_points | 0.034 |
 | sedonadb (proj) | Python | load_polys | 0.002 |
 | sedonadb (proj) | Python | buffer_pts | 0.624 |
+| sedonadb (clean) | Python | load_points | 0.036 |
+| sedonadb (clean) | Python | load_polys | 0.005 |
+| sedonadb (clean) | Python | buffer_pts | 0.625 |
+| sedonadb (clean) | Python | intersection | 0.037 |
 
 **Notes:**
 - **SedonaDB R**: `transform_pts` and subsequent operations failed due to missing PROJ feature in the installed package.
 - **SedonaDB Python**: `intersection` failed due to an internal schema mismatch error in DataFusion/SedonaDB.
 - **SedonaDB Python (Projected)**: Even with pre-projected data (avoiding `ST_Transform`), the `intersection` query fails with the same schema mismatch error.
-- **Performance**: SedonaDB shows significant speedup in buffering (0.66s vs 1.73s in Geopandas vs 3.51s in sf).
+- **SedonaDB Python (Clean)**: Stripping the **Pandas metadata** (index info) from the Arrow table before loading resolves the schema mismatch issue.
+- **Performance**: SedonaDB shows significant speedup:
+    - **Buffering**: 0.66s vs 1.73s (Geopandas) vs 3.51s (sf).
+    - **Intersection**: 0.037s vs 0.328s (Geopandas) vs 0.408s (sf) (**~10x faster**).
