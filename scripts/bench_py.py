@@ -5,8 +5,9 @@ import pandas as pd
 print("Starting Python (geopandas) Benchmarks [NZ]...")
 
 def log_result(operation, time_sec):
+    ops_per_sec = 1 / time_sec if time_sec > 0 else 0
     with open("results.csv", "a") as f:
-        f.write(f"geopandas,Python,{operation},{time_sec:.6f}\n")
+        f.write(f"geopandas,Python,{operation},{ops_per_sec:.2f}\n")
 
 def time_func(name, func, *args, **kwargs):
     times = []

@@ -41,16 +41,16 @@ ggplot() +
 
 Run on 100,000 points and 16 polygons (Regions).
 
-| system    | language | operation    | time_sec |
-|:----------|:---------|:-------------|---------:|
-| sf        | R        | read_points  | 0.127889 |
-| sf        | R        | read_regions | 0.002479 |
-| sf        | R        | spatial_join | 0.336157 |
-| geopandas | Python   | read_points  | 0.067595 |
-| geopandas | Python   | read_regions | 0.002972 |
-| geopandas | Python   | spatial_join | 0.029471 |
-| sedonadb  | Python   | read_points  | 0.024173 |
-| sedonadb  | Python   | read_regions | 0.001395 |
-| sedonadb  | Python   | spatial_join | 0.041024 |
+| system    | language | operation    | ops_per_sec |
+|:----------|:---------|:-------------|------------:|
+| sf        | R        | read_points  |        7.64 |
+| sf        | R        | read_regions |      353.79 |
+| sf        | R        | spatial_join |        2.91 |
+| geopandas | Python   | read_points  |       14.49 |
+| geopandas | Python   | read_regions |      318.77 |
+| geopandas | Python   | spatial_join |       33.00 |
+| sedonadb  | Python   | read_points  |       41.55 |
+| sedonadb  | Python   | read_regions |      786.04 |
+| sedonadb  | Python   | spatial_join |       27.59 |
 
 ![](README_files/figure-commonmark/plot-results-1.png)

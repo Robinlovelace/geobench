@@ -5,7 +5,8 @@ library(dplyr)
 # Helper to log results
 log_result <- function(operation, benchmark) {
   mean_sec <- mean(benchmark$time) / 1e9
-  cat(sprintf("sf,R,%s,%.6f\n", operation, mean_sec), 
+  ops_per_sec <- 1 / mean_sec
+  cat(sprintf("sf,R,%s,%.2f\n", operation, ops_per_sec), 
       file = "results.csv", append = TRUE)
 }
 

@@ -2,7 +2,7 @@
 set -e
 
 echo "Initializing results.csv..."
-echo "system,language,operation,time_sec" > results.csv
+echo "system,language,operation,ops_per_sec" > results.csv
 
 echo "Generating Data (NZ)..."
 Rscript scripts/data_gen_nz.R

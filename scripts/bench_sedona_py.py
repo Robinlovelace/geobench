@@ -11,8 +11,9 @@ pts_gdf = gpd.read_file("nz.gpkg", layer="points", engine="pyogrio")
 regions_gdf = gpd.read_file("nz.gpkg", layer="regions", engine="pyogrio")
 
 def log_result(operation, time_sec):
+    ops_per_sec = 1 / time_sec if time_sec > 0 else 0
     with open("results.csv", "a") as f:
-        f.write(f"sedonadb,Python,{operation},{time_sec:.6f}\n")
+        f.write(f"sedonadb,Python,{operation},{ops_per_sec:.2f}\n")
 
 def time_func(name, func, *args, **kwargs):
     times = []
