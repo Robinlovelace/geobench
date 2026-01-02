@@ -31,6 +31,9 @@ points_sample <- st_sf(geometry = st_sample(bbox_poly, size = 100))
 ggplot() +
   geom_sf(data = nz, fill = "lightblue", color = "white") +
   geom_sf(data = points_sample, color = "red", alpha = 0.5, size = 1) +
+  scale_x_continuous(labels = function(x) paste0(x / 1000, " km")) +
+  scale_y_continuous(labels = function(y) paste0(y / 1000, " km")) +
+  coord_sf(datum = st_crs(nz)) +
   theme_minimal() +
   ggtitle("Experimental Setup (n=100)")
 ```
