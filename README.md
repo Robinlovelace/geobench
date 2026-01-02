@@ -47,3 +47,10 @@ Run on 100,000 points and 16 polygons (Regions).
 [Download full results (CSV)](results.csv)
 
 ![](README_files/figure-commonmark/plot-results-1.png)
+
+**Note**: These benchmarks are intended for illustrative purposes and
+may not be fully representative of complex, real-world use cases or
+performance at larger scales. For more comprehensive benchmarks
+comparing Sedona, DuckDB, and GeoPandas, we recommend checking out the
+official [Sedona Spatial
+Benchmarks](https://sedona.apache.org/spatialbench/single-node-benchmarks/).
