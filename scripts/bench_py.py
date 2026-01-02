@@ -22,7 +22,8 @@ def time_func(name, func, *args, **kwargs):
     key_map = {
         "Read Points": "read_points",
         "Read Regions": "read_regions",
-        "Spatial Join": "spatial_join"
+        "Spatial Join": "spatial_join",
+        "Buffer Points": "buffer_pts"
     }
     if name in key_map:
         log_result(key_map[name], avg_time)
@@ -35,7 +36,14 @@ def read_layer(layer):
 pts = time_func("Read Points", read_layer, "points")
 regions = time_func("Read Regions", read_layer, "regions")
 
-# 2. Spatial Join
+# 2. Buffer
+# Buffer by 1000m
+def buffer_layer(gdf, dist):
+    return gdf.buffer(dist)
+
+time_func("Buffer Points", buffer_layer, pts, 1000)
+
+# 3. Spatial Join
 # Join 'Name'
 # geopandas uses 'geom' or 'geometry', usually 'geometry' in memory.
 # Select Name and geometry

@@ -38,4 +38,15 @@ bench_sjoin <- microbenchmark(
 print(bench_sjoin)
 log_result("spatial_join", bench_sjoin)
 
+# 3. Buffer
+# Buffer points by 1000 meters
+bench_buffer <- microbenchmark(
+  buffer_pts = { 
+    pts_buf <- st_buffer(pts, dist = 1000) 
+  },
+  times = 5
+)
+print(bench_buffer)
+log_result("buffer_pts", bench_buffer)
+
 message("R Benchmarks Complete.")

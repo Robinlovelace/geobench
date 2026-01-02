@@ -26,9 +26,10 @@ def time_func(name, func, *args, **kwargs):
     print(f"{name}: {avg_time:.4f} s (avg of 5)")
     
     key_map = {
-        "Load Points": "read_points",
-        "Load Regions": "read_regions",
-        "Spatial Join": "spatial_join"
+        "Load Points": "load_points",
+        "Load Regions": "load_regions",
+        "Spatial Join": "spatial_join",
+        "Buffer Points": "buffer_pts"
     }
     if name in key_map:
         log_result(key_map[name], avg_time)
@@ -52,6 +53,16 @@ clean_load_view(regions_gdf, "regions")
 # Spatial Join
 geom_col = "geom" 
 if "geometry" in pts_gdf.columns: geom_col = "geometry"
+
+def run_query(query):
+    return sd.sql(query).to_pandas()
+
+# Buffer
+buffer_query = f"SELECT ST_Buffer({geom_col}, 1000) as {geom_col} FROM points"
+try:
+    time_func("Buffer Points", run_query, buffer_query)
+except Exception as e:
+    print(f"Error buffering: {e}")
 
 # Left Join Name
 query = f"""
