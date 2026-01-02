@@ -41,14 +41,7 @@ ggplot() +
 
 Run on 100,000 points and 16 polygons (Regions).
 
-```{r results-table, echo=FALSE, message=FALSE}
-if (file.exists("results.csv")) {
-  results <- read.csv("results.csv")
-  knitr::kable(results)
-} else {
-  print("No results found yet.")
-}
-```
+[Download full results (CSV)](results.csv)
 
 ```{r plot-results, echo=FALSE, message=FALSE, warning=FALSE}
 if (file.exists("results.csv")) {
@@ -61,9 +54,10 @@ if (file.exists("results.csv")) {
   ggplot(results, aes(x = system, y = ops_per_sec, fill = system)) +
     geom_col() +
     facet_wrap(~ operation, ncol = 3, scales = "free_y") +
+    scale_fill_brewer(palette = "Set2") +
     theme_minimal() +
     labs(title = "Benchmark Results",
-         y = "Operations per second", x = NULL, fill = "System") +
+         y = "Operations per second", x = "System") +
     theme(legend.position = "bottom",
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank())
