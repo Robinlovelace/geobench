@@ -13,14 +13,11 @@ log_result <- function(operation, benchmark) {
       file = "results.csv", append = TRUE)
 }
 
-# Read data
-pts_sf <- st_read("nz_points.gpkg", quiet = TRUE)
-regions_sf <- st_read("nz_regions.gpkg", quiet = TRUE)
-
-# 1. Load
+# 1. Read (Disk -> sf -> View)
 bench_load_pts <- microbenchmark(
-  load_points = { 
-    pts_sf |> sd_to_view("points", overwrite = TRUE)
+  read_points = { 
+    st_read("nz_points.gpkg", quiet = TRUE) |> 
+      sd_to_view("points", overwrite = TRUE)
   },
   times = 5
 )
@@ -28,17 +25,18 @@ print(bench_load_pts)
 log_result("read_points", bench_load_pts)
 
 bench_load_regions <- microbenchmark(
-  load_regions = { 
-    regions_sf |> sd_to_view("regions", overwrite = TRUE)
+  read_regions = { 
+    st_read("nz_regions.gpkg", quiet = TRUE) |> 
+      sd_to_view("regions", overwrite = TRUE)
   },
   times = 5
 )
 print(bench_load_regions)
 log_result("read_regions", bench_load_regions)
 
-# Ensure views
-pts_sf |> sd_to_view("points", overwrite = TRUE)
-regions_sf |> sd_to_view("regions", overwrite = TRUE)
+# Ensure views are ready (redundant but safe)
+st_read("nz_points.gpkg", quiet = TRUE) |> sd_to_view("points", overwrite = TRUE)
+st_read("nz_regions.gpkg", quiet = TRUE) |> sd_to_view("regions", overwrite = TRUE)
 
 # 2. Buffer
 tryCatch({

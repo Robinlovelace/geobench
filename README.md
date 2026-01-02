@@ -46,25 +46,25 @@ Run on 100,000 points and 16 polygons (Regions).
 
 | system          | language | operation    | ops_per_sec |
 |:----------------|:---------|:-------------|------------:|
-| sf              | R        | read_points  |        7.06 |
-| sf              | R        | read_regions |      405.49 |
-| sf              | R        | spatial_join |        3.00 |
-| sf              | R        | buffer_pts   |        0.78 |
-| geopandas       | Python   | read_points  |       15.02 |
-| geopandas       | Python   | read_regions |      323.81 |
-| geopandas       | Python   | buffer_pts   |        2.04 |
-| geopandas       | Python   | spatial_join |       34.38 |
-| sedonadb-pandas | Python   | read_points  |       28.75 |
-| sedonadb-pandas | Python   | read_regions |      848.16 |
-| sedonadb-pandas | Python   | buffer_pts   |        5.97 |
-| sedonadb-pandas | Python   | spatial_join |       17.35 |
-| sedonadb-polars | Python   | read_points  |       29.46 |
-| sedonadb-polars | Python   | read_regions |      860.65 |
-| sedonadb-polars | Python   | buffer_pts   |       11.35 |
-| sedonadb-polars | Python   | spatial_join |       25.85 |
-| sedonadb-sf     | R        | read_points  |      111.56 |
-| sedonadb-sf     | R        | read_regions |      373.55 |
-| sedonadb-sf     | R        | buffer_pts   |       67.99 |
-| sedonadb-sf     | R        | spatial_join |      227.29 |
+| sf              | R        | read_points  |        7.91 |
+| sf              | R        | read_regions |      390.86 |
+| sf              | R        | spatial_join |        2.97 |
+| sf              | R        | buffer_pts   |        0.77 |
+| geopandas       | Python   | read_points  |       14.80 |
+| geopandas       | Python   | read_regions |      326.74 |
+| geopandas       | Python   | buffer_pts   |        2.05 |
+| geopandas       | Python   | spatial_join |       33.70 |
+| sedonadb-pandas | Python   | read_points  |       26.98 |
+| sedonadb-pandas | Python   | read_regions |      853.40 |
+| sedonadb-pandas | Python   | buffer_pts   |        6.06 |
+| sedonadb-pandas | Python   | spatial_join |       16.33 |
+| sedonadb-polars | Python   | read_points  |       28.14 |
+| sedonadb-polars | Python   | read_regions |      855.39 |
+| sedonadb-polars | Python   | buffer_pts   |       11.52 |
+| sedonadb-polars | Python   | spatial_join |       22.53 |
+| sedonadb-sf     | R        | read_points  |        6.56 |
+| sedonadb-sf     | R        | read_regions |      224.16 |
+| sedonadb-sf     | R        | buffer_pts   |       69.84 |
+| sedonadb-sf     | R        | spatial_join |      248.10 |
 
 ![](README_files/figure-commonmark/plot-results-1.png)
