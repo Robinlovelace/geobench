@@ -17,7 +17,8 @@ points_proj <- st_transform(points, 27700)
 message("Generating ", n_polys, " polygons (projected)...")
 poly_centers <- st_as_sf(data.frame(
   lon = runif(n_polys, min = -6, max = 2),
-  lat = runif(n_polys, min = 50, max = 59)
+  lat = runif(n_polys, min = 50, max = 59),
+  id = 1:n_polys
 ), coords = c("lon", "lat"), crs = 4326)
 poly_centers_proj <- st_transform(poly_centers, 27700)
 

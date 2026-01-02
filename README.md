@@ -37,12 +37,16 @@ Run on 100,000 points and 100 polygons.
 | sedonadb (clean) | Python | load_polys | 0.005 |
 | sedonadb (clean) | Python | buffer_pts | 0.625 |
 | sedonadb (clean) | Python | intersection | 0.037 |
+| sf | R | spatial_join | 0.467 |
+| geopandas | Python | spatial_join | 0.016 |
+| sedonadb (clean) | Python | spatial_join | 0.052 |
 
 **Notes:**
 - **SedonaDB R**: `transform_pts` and subsequent operations failed due to missing PROJ feature in the installed package.
 - **SedonaDB Python**: `intersection` failed due to an internal schema mismatch error in DataFusion/SedonaDB.
 - **SedonaDB Python (Projected)**: Even with pre-projected data (avoiding `ST_Transform`), the `intersection` query fails with the same schema mismatch error.
 - **SedonaDB Python (Clean)**: Stripping the **Pandas metadata** (index info) from the Arrow table before loading resolves the schema mismatch issue.
-- **Performance**: SedonaDB shows significant speedup:
-    - **Buffering**: 0.66s vs 1.73s (Geopandas) vs 3.51s (sf).
-    - **Intersection**: 0.037s vs 0.328s (Geopandas) vs 0.408s (sf) (**~10x faster**).
+- **Performance**:
+    - **Buffering**: SedonaDB (0.66s) is faster than Geopandas (1.73s) and sf (3.51s).
+    - **Intersection (Clipping)**: SedonaDB (0.037s) is ~10x faster than Geopandas (0.328s) and sf (0.408s).
+    - **Spatial Join (Point-in-Poly)**: Geopandas (0.016s) is fastest, followed by SedonaDB (0.052s) and sf (0.467s).
