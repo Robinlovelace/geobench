@@ -1,16 +1,14 @@
 import sedona.db
 import geopandas as gpd
 import time
-import os
+import pyarrow as pa
 
-print("Starting Python (sedona.db) Benchmarks...")
+print("Starting Python (sedona.db) Benchmarks [NZ]...")
 
-# Connect to SedonaDB
 sd = sedona.db.connect()
 
-# Setup: Read data with geopandas
-pts_gdf = gpd.read_file("data.gpkg", layer="points", engine="pyogrio")
-polys_gdf = gpd.read_file("data.gpkg", layer="polygons", engine="pyogrio")
+pts_gdf = gpd.read_file("nz.gpkg", layer="points", engine="pyogrio")
+regions_gdf = gpd.read_file("nz.gpkg", layer="regions", engine="pyogrio")
 
 def log_result(operation, time_sec):
     with open("results.csv", "a") as f:
@@ -28,56 +26,45 @@ def time_func(name, func, *args, **kwargs):
     
     key_map = {
         "Load Points": "load_points",
-        "Load Polys": "load_polys",
-        "Transform Points": "transform_pts",
-        "Buffer Points": "buffer_pts",
-        "Intersection": "intersection"
+        "Load Regions": "load_regions",
+        "Spatial Join": "spatial_join"
     }
     if name in key_map:
         log_result(key_map[name], avg_time)
-        
     return res
 
-# 1. Load to SedonaDB
-def load_view(gdf, name):
-    df = sd.create_data_frame(gdf)
-    df.to_view(name, overwrite=True)
-    return df
+def clean_load_view(gdf, name):
+    temp_df = sd.create_data_frame(gdf)
+    table = temp_df.to_arrow_table()
+    clean_table = table.replace_schema_metadata(None)
+    final_df = sd.create_data_frame(clean_table)
+    final_df.to_view(name, overwrite=True)
+    return final_df
 
-time_func("Load Points", load_view, pts_gdf, "points")
-time_func("Load Polys", load_view, polys_gdf, "polygons")
+time_func("Load Points", clean_load_view, pts_gdf, "points")
+time_func("Load Regions", clean_load_view, regions_gdf, "regions")
 
-# Ensure views are there (redundant but safe)
-load_view(pts_gdf, "points")
-load_view(polys_gdf, "polygons")
+# Ensure views
+clean_load_view(pts_gdf, "points")
+clean_load_view(regions_gdf, "regions")
 
-# 2. Transform
-# Note: We use .show() or .to_pandas() or .collect() to force execution.
-# .collect() usually returns a list of Rows. .to_pandas() returns a DF.
-# Let's use to_pandas() as it mimics sd_collect() in R.
+# Spatial Join
+geom_col = "geom" 
+if "geometry" in pts_gdf.columns: geom_col = "geometry"
+
+# Left Join Name
+query = f"""
+    SELECT p.{geom_col}, r."Name"
+    FROM points AS p
+    LEFT JOIN regions AS r ON ST_Intersects(p.{geom_col}, r.{geom_col})
+"""
+
 def run_query(query):
     return sd.sql(query).to_pandas()
 
-transform_query = "SELECT ST_Transform(geometry, 'EPSG:27700') as geometry FROM points"
-time_func("Transform Points", run_query, transform_query)
-
-# Create transformed views
-sd.sql(transform_query).to_view("points_proj")
-sd.sql("SELECT ST_Transform(geometry, 'EPSG:27700') as geometry FROM polygons").to_view("polys_proj")
-
-# 3. Buffer
-buffer_query = "SELECT ST_Buffer(geometry, 100) as geometry FROM points_proj"
-time_func("Buffer Points", run_query, buffer_query)
-
-# 4. Intersection
-intersect_query = """
-    SELECT p.geometry 
-    FROM points_proj AS p, polys_proj AS poly 
-    WHERE ST_Intersects(p.geometry, poly.geometry)
-"""
 try:
-    time_func("Intersection", run_query, intersect_query)
+    time_func("Spatial Join", run_query, query)
 except Exception as e:
-    print(f"Skipping Intersection benchmark due to error: {e}")
+    print(f"Error: {e}")
 
-print("Python (sedona.db) Benchmarks Complete.")
+print("Sedona Benchmarks Complete.")
