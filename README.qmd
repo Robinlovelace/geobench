@@ -52,12 +52,13 @@ if (file.exists("results.csv")) {
   library(ggplot2)
   results <- read.csv("results.csv")
   
-  ggplot(results, aes(x = system, y = ops_per_sec, fill = language)) +
+  ggplot(results, aes(x = system, y = ops_per_sec, fill = system)) +
     geom_col() +
     facet_wrap(~ operation, ncol = 3, scales = "free_y") +
     theme_minimal() +
     labs(title = "Benchmark Results",
          y = "Operations per second", x = "System") +
-    theme(legend.position = "bottom")
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 45, hjust = 1))
 }
 ```

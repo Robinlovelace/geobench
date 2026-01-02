@@ -15,3 +15,6 @@ python3 scripts/bench_py.py
 
 echo "Running Python (sedona.db) Benchmarks..."
 python3 scripts/bench_sedona_py.py
+
+echo "Running R (sedonadb) Benchmarks..."
+Rscript scripts/bench_sedona_r.R

@@ -41,19 +41,23 @@ ggplot() +
 
 Run on 100,000 points and 16 polygons (Regions).
 
-| system    | language | operation    | ops_per_sec |
-|:----------|:---------|:-------------|------------:|
-| sf        | R        | read_points  |        7.92 |
-| sf        | R        | read_regions |      412.49 |
-| sf        | R        | spatial_join |        2.95 |
-| sf        | R        | buffer_pts   |        0.74 |
-| geopandas | Python   | read_points  |       14.50 |
-| geopandas | Python   | read_regions |      320.59 |
-| geopandas | Python   | buffer_pts   |        1.92 |
-| geopandas | Python   | spatial_join |       32.56 |
-| sedonadb  | Python   | load_points  |       40.42 |
-| sedonadb  | Python   | load_regions |      660.37 |
-| sedonadb  | Python   | buffer_pts   |        5.95 |
-| sedonadb  | Python   | spatial_join |       23.58 |
+| system      | language | operation    | ops_per_sec |
+|:------------|:---------|:-------------|------------:|
+| sf          | R        | read_points  |        2.94 |
+| sf          | R        | read_regions |      165.24 |
+| sf          | R        | spatial_join |        1.13 |
+| sf          | R        | buffer_pts   |        0.36 |
+| geopandas   | Python   | read_points  |        4.86 |
+| geopandas   | Python   | read_regions |      114.73 |
+| geopandas   | Python   | buffer_pts   |        0.69 |
+| geopandas   | Python   | spatial_join |       21.00 |
+| sedonadb-py | Python   | load_points  |       27.75 |
+| sedonadb-py | Python   | load_regions |      252.66 |
+| sedonadb-py | Python   | buffer_pts   |        1.58 |
+| sedonadb-py | Python   | spatial_join |        7.71 |
+| sedonadb-r  | R        | read_points  |       33.34 |
+| sedonadb-r  | R        | read_regions |       85.43 |
+| sedonadb-r  | R        | buffer_pts   |       20.15 |
+| sedonadb-r  | R        | spatial_join |       43.16 |
 
 ![](README_files/figure-commonmark/plot-results-1.png)
