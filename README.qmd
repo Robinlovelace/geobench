@@ -57,8 +57,9 @@ if (file.exists("results.csv")) {
     facet_wrap(~ operation, ncol = 3, scales = "free_y") +
     theme_minimal() +
     labs(title = "Benchmark Results",
-         y = "Operations per second", x = "System") +
-    theme(legend.position = "none",
-          axis.text.x = element_text(angle = 45, hjust = 1))
+         y = "Operations per second", x = NULL, fill = "System") +
+    theme(legend.position = "bottom",
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank())
 }
 ```
