@@ -1,6 +1,7 @@
 import sedona.db
 import geopandas as gpd
 import time
+import os
 
 print("Starting Python (sedona.db) Benchmarks...")
 
@@ -11,6 +12,10 @@ sd = sedona.db.connect()
 pts_gdf = gpd.read_file("data.gpkg", layer="points", engine="pyogrio")
 polys_gdf = gpd.read_file("data.gpkg", layer="polygons", engine="pyogrio")
 
+def log_result(operation, time_sec):
+    with open("results.csv", "a") as f:
+        f.write(f"sedonadb,Python,{operation},{time_sec:.6f}\n")
+
 def time_func(name, func, *args, **kwargs):
     times = []
     for _ in range(5):
@@ -20,12 +25,23 @@ def time_func(name, func, *args, **kwargs):
         times.append(end - start)
     avg_time = sum(times) / len(times)
     print(f"{name}: {avg_time:.4f} s (avg of 5)")
+    
+    key_map = {
+        "Load Points": "load_points",
+        "Load Polys": "load_polys",
+        "Transform Points": "transform_pts",
+        "Buffer Points": "buffer_pts",
+        "Intersection": "intersection"
+    }
+    if name in key_map:
+        log_result(key_map[name], avg_time)
+        
     return res
 
 # 1. Load to SedonaDB
 def load_view(gdf, name):
     df = sd.create_data_frame(gdf)
-    df.to_view(name)
+    df.to_view(name, overwrite=True)
     return df
 
 time_func("Load Points", load_view, pts_gdf, "points")
@@ -59,6 +75,9 @@ intersect_query = """
     FROM points_proj AS p, polys_proj AS poly 
     WHERE ST_Intersects(p.geometry, poly.geometry)
 """
-time_func("Intersection", run_query, intersect_query)
+try:
+    time_func("Intersection", run_query, intersect_query)
+except Exception as e:
+    print(f"Skipping Intersection benchmark due to error: {e}")
 
 print("Python (sedona.db) Benchmarks Complete.")

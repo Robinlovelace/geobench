@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Initializing results.csv..."
+echo "system,language,operation,time_sec" > results.csv
+
 echo "Generating Data..."
 Rscript scripts/data_gen.R
 

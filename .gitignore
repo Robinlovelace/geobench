@@ -1,0 +1,3 @@
+*.gpkg
+results.csv
+__pycache__/

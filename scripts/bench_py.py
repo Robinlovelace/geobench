@@ -1,8 +1,13 @@
 import geopandas as gpd
 import time
 import pandas as pd
+import os
 
 print("Starting Python (geopandas) Benchmarks...")
+
+def log_result(operation, time_sec):
+    with open("results.csv", "a") as f:
+        f.write(f"geopandas,Python,{operation},{time_sec:.6f}\n")
 
 def time_func(name, func, *args, **kwargs):
     times = []
@@ -13,6 +18,19 @@ def time_func(name, func, *args, **kwargs):
         times.append(end - start)
     avg_time = sum(times) / len(times)
     print(f"{name}: {avg_time:.4f} s (avg of 5)")
+    
+    # Map friendly name to key for csv
+    key_map = {
+        "Read Points": "read_points",
+        "Read Polys": "read_polys",
+        "Transform Points": "transform_pts",
+        "Transform Polys": "transform_polys", # Not logged in R but calculated
+        "Buffer Points": "buffer_pts",
+        "Intersection (Overlay)": "intersection"
+    }
+    if name in key_map:
+        log_result(key_map[name], avg_time)
+        
     return res
 
 # 1. Read
