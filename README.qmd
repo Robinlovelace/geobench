@@ -56,13 +56,9 @@ if (file.exists("results.csv")) {
   library(ggplot2)
   results <- read.csv("results.csv")
   results$system <- factor(results$system,
-                           levels = c("sf",
-                                      "geopandas",
-                                      "sedonadb-sf",
-                                      "sedonadb-pandas",
-                                      "sedonadb-polars",
-                                      "duckdb-gpkg",
-                                      "duckdb-parquet"),
+                           levels = c("sf", "geopandas",
+                                    "sedonadb-sf", "sedonadb-pandas", "sedonadb-polars",
+                                    "duckdb-gpkg", "duckdb-parquet", "duckdb-memory"),
                            ordered = TRUE)
 
   ggplot(results, aes(x = system, y = ops_per_sec, fill = system)) +
