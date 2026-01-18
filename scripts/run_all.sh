@@ -21,3 +21,9 @@ python3 scripts/bench_sedona_polars.py
 
 echo "Running R (sedonadb) Benchmarks..."
 Rscript scripts/bench_sedona_r.R
+
+echo "Running R (duckdb) Benchmarks..."
+Rscript scripts/bench_duckdb_r.R
+
+echo "Running Python (duckdb) Benchmarks..."
+python3 scripts/bench_duckdb_py.py
