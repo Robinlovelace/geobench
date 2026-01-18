@@ -38,7 +38,8 @@ def time_func(system, name, query):
     key_map = {
         "Read Points": "read_points",
         "Read Regions": "read_regions",
-        "Spatial Join": "spatial_join"
+        "Spatial Join": "spatial_join",
+        "Buffer Points": "buffer_pts"
     }
     if name in key_map:
         log_result(system, key_map[name], avg_time)
@@ -65,7 +66,7 @@ ON ST_Intersects(p.geom, r.geom)
 time_func("duckdb-gpkg", "Spatial Join", query_join_gpkg)
 
 # System: duckdb-parquet
-# We cast to Geometry from WKB for the join
+# FIX: Removed ST_GeomFromWKB() because the columns are already GEOMETRY type.
 query_join_parquet = """
 SELECT p.geom, r.Name
 FROM 'nz_points.parquet' AS p
@@ -73,5 +74,13 @@ LEFT JOIN 'nz_regions.parquet' AS r
 ON ST_Intersects(p.geom, r.geom)
 """
 time_func("duckdb-parquet", "Spatial Join", query_join_parquet)
+
+# --- 3. Buffer Benchmarks ---
+
+# System: duckdb-gpkg
+time_func("duckdb-gpkg", "Buffer Points", "SELECT ST_Buffer(geom, 1000) FROM ST_Read('nz_points.gpkg')")
+
+# System: duckdb-parquet
+time_func("duckdb-parquet", "Buffer Points", "SELECT ST_Buffer(geom, 1000) FROM 'nz_points.parquet'")
 
 print("DuckDB Python Benchmarks Complete.")

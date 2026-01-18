@@ -78,6 +78,12 @@ cd ..
 docker run --rm -ti --net=host -v ${PWD}:/home/rstudio/project geobench /bin/bash -c "cd /home/rstudio/project && ./scripts/run_all.sh"
 ```
 
+**3. Render/Update README.md:**
+
+``` bash
+docker run --rm -ti --net=host -v ${PWD}:/home/rstudio/project geobench /bin/bash -c "cd /home/rstudio/project && quarto render README.qmd"
+```
+
 ### Performance Hypothesis
 
 The results show `sedonadb-sf` (R) outperforming Python variants in
@@ -98,11 +104,10 @@ standard WKB-based approaches:
     bottleneck.
 2.  **Native Geometry**: `duckdb-parquet` utilizes the spatial
     extension’s ability to read geometry data directly from Parquet
-    without expensive WKB conversion (as seen in the benchmark code
-    where explicit `ST_GeomFromWKB` casts were removed). We hypothesize
-    this will offer significant speedups over the `duckdb-gpkg`
-    approach, effectively isolating the I/O and serialization cost from
-    the actual spatial join compute time.
+    without expensive WKB conversion. We hypothesize this will offer
+    significant speedups over the `duckdb-gpkg` approach, effectively
+    isolating the I/O and serialization cost from the actual spatial
+    join compute time.
 
 ### Next Steps
 

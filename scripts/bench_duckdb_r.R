@@ -12,7 +12,6 @@ message("Starting R (DuckDB) Benchmarks [NZ]...")
 # Ensure Parquet files exist (Generate from GPKG if needed)
 if (!file.exists("nz_points.parquet")) {
   message("Generating nz_points.parquet from GPKG...")
-  # We use ST_Read to load the GPKG and COPY to write Parquet
   dbExecute(
     con,
     "COPY (SELECT * FROM ST_Read('nz_points.gpkg')) TO 'nz_points.parquet' (FORMAT PARQUET);"
@@ -88,7 +87,6 @@ log_result(
 # Operation: Join Points with Regions (Left Join)
 
 # System: duckdb-gpkg
-# We use ST_Read directly in the query to mimic accessing traditional files
 query_join_gpkg <- "
 SELECT p.geom, r.Name
 FROM ST_Read('nz_points.gpkg') AS p
@@ -106,8 +104,7 @@ print(bench_join_gpkg)
 log_result("duckdb-gpkg", "spatial_join", bench_join_gpkg)
 
 # System: duckdb-parquet
-# We read Parquet directly. Note: WKB geometry usually requires explicit casting
-# via ST_GeomFromWKB when reading from Parquet if not automatically detected.
+# FIX: Removed ST_GeomFromWKB() because the columns are already GEOMETRY type.
 query_join_parquet <- "
 SELECT p.geom, r.Name
 FROM 'nz_points.parquet' AS p
@@ -123,6 +120,30 @@ bench_join_parquet <- microbenchmark(
 )
 print(bench_join_parquet)
 log_result("duckdb-parquet", "spatial_join", bench_join_parquet)
+
+
+# --- 3. Buffer Benchmarks ---
+# Operation: Buffer points by 1000m
+
+# System: duckdb-gpkg
+bench_buffer_gpkg <- microbenchmark(
+  buffer_pts = {
+    res <- dbGetQuery(con, "SELECT ST_Buffer(geom, 1000) FROM ST_Read('nz_points.gpkg')")
+  },
+  times = 5
+)
+print(bench_buffer_gpkg)
+log_result("duckdb-gpkg", "buffer_pts", bench_buffer_gpkg)
+
+# System: duckdb-parquet
+bench_buffer_parquet <- microbenchmark(
+  buffer_pts = {
+    res <- dbGetQuery(con, "SELECT ST_Buffer(geom, 1000) FROM 'nz_points.parquet'")
+  },
+  times = 5
+)
+print(bench_buffer_parquet)
+log_result("duckdb-parquet", "buffer_pts", bench_buffer_parquet)
 
 # Clean up
 dbDisconnect(con, shutdown = TRUE)
