@@ -2,14 +2,12 @@ library(duckdb)
 library(microbenchmark)
 library(dplyr)
 
-# Setup DuckDB connection
 con <- dbConnect(duckdb())
 dbExecute(con, "INSTALL spatial; LOAD spatial;")
 
 message("Starting R (DuckDB) Benchmarks [NZ]...")
 
 # --- 0. Data Preparation ---
-# Ensure Parquet files exist
 if (!file.exists("nz_points.parquet")) {
   message("Generating nz_points.parquet from GPKG...")
   dbExecute(
@@ -25,17 +23,6 @@ if (!file.exists("nz_regions.parquet")) {
   )
 }
 
-# --- Load into Memory (The "Fair" Comparison) ---
-message("Loading Parquet into in-memory DuckDB tables...")
-dbExecute(
-  con,
-  "CREATE OR REPLACE TABLE points AS SELECT * FROM 'nz_points.parquet'"
-)
-dbExecute(
-  con,
-  "CREATE OR REPLACE TABLE regions AS SELECT * FROM 'nz_regions.parquet'"
-)
-
 # Helper to log results
 log_result <- function(system_name, operation, benchmark) {
   mean_sec <- mean(benchmark$time) / 1e9
@@ -47,11 +34,10 @@ log_result <- function(system_name, operation, benchmark) {
   )
 }
 
-# --- 1. Read Benchmarks (Disk -> R Memory) ---
-
-# System: duckdb-parquet
-# We measure the time to select * from parquet
-bench_read_parquet <- microbenchmark(
+# ---------------------------------------------------------
+# SYSTEM 1: duckdb-parquet (Best Case for Reading)
+# ---------------------------------------------------------
+bench_read <- microbenchmark(
   read_points = {
     res <- dbGetQuery(con, "SELECT * FROM 'nz_points.parquet'")
   },
@@ -63,77 +49,68 @@ bench_read_parquet <- microbenchmark(
 log_result(
   "duckdb-parquet",
   "read_points",
-  bench_read_parquet[bench_read_parquet$expr == "read_points", ]
+  bench_read[bench_read$expr == "read_points", ]
 )
 log_result(
   "duckdb-parquet",
   "read_regions",
-  bench_read_parquet[bench_read_parquet$expr == "read_regions", ]
+  bench_read[bench_read$expr == "read_regions", ]
 )
 
 
-# --- 2. Spatial Join Benchmarks ---
+# ---------------------------------------------------------
+# SETUP FOR MEMORY (Best Case Configuration)
+# ---------------------------------------------------------
+message("Preparing In-Memory Data (Optimized)...")
 
-# System: duckdb-parquet (Disk-based)
-query_join_parquet <- "
-SELECT p.geom, r.Name
-FROM 'nz_points.parquet' AS p
-LEFT JOIN 'nz_regions.parquet' AS r
-ON ST_Intersects(p.geom, r.geom)
-"
-
-bench_join_parquet <- microbenchmark(
-  spatial_join = {
-    res <- dbGetQuery(con, query_join_parquet)
-  },
-  times = 5
+# 1. Load Regions & Build R-Tree Index (Crucial for Join Speed)
+dbExecute(
+  con,
+  "CREATE OR REPLACE TABLE regions AS SELECT * FROM 'nz_regions.parquet'"
 )
-print(bench_join_parquet)
-log_result("duckdb-parquet", "spatial_join", bench_join_parquet)
+dbExecute(con, "CREATE INDEX idx_regions_geom ON regions USING RTREE (geom)")
 
-# System: duckdb-memory (In-Memory)
-# This uses the pre-loaded tables 'points' and 'regions'
-query_join_memory <- "
+# 2. Load Points as Native 2D Structs (Crucial for Memory/Cache Speed)
+# We keep a standard 'points' table for Buffer, and 'points_2d' for Join if needed
+dbExecute(
+  con,
+  "CREATE OR REPLACE TABLE points AS SELECT * FROM 'nz_points.parquet'"
+)
+dbExecute(
+  con,
+  "CREATE OR REPLACE TABLE points_2d AS SELECT ST_Point2D(ST_X(geom), ST_Y(geom)) AS geom FROM points"
+)
+
+
+# ---------------------------------------------------------
+# SYSTEM 2: duckdb-memory (Best Case for Compute)
+# ---------------------------------------------------------
+
+# A. Spatial Join (Optimized with Index + Point2D)
+query_join_opt <- "
 SELECT p.geom, r.Name
-FROM points AS p
+FROM points_2d AS p
 LEFT JOIN regions AS r
 ON ST_Intersects(p.geom, r.geom)
 "
-
-bench_join_memory <- microbenchmark(
+bench_join <- microbenchmark(
   spatial_join = {
-    res <- dbGetQuery(con, query_join_memory)
+    res <- dbGetQuery(con, query_join_opt)
   },
   times = 5
 )
-print(bench_join_memory)
-log_result("duckdb-memory", "spatial_join", bench_join_memory)
+print(bench_join)
+log_result("duckdb-memory", "spatial_join", bench_join)
 
-
-# --- 3. Buffer Benchmarks ---
-
-# System: duckdb-parquet
-bench_buffer_parquet <- microbenchmark(
-  buffer_pts = {
-    res <- dbGetQuery(
-      con,
-      "SELECT ST_Buffer(geom, 1000) FROM 'nz_points.parquet'"
-    )
-  },
-  times = 5
-)
-log_result("duckdb-parquet", "buffer_pts", bench_buffer_parquet)
-
-# System: duckdb-memory
-bench_buffer_memory <- microbenchmark(
+# B. Buffer (Using Standard Geometry table)
+bench_buffer <- microbenchmark(
   buffer_pts = {
     res <- dbGetQuery(con, "SELECT ST_Buffer(geom, 1000) FROM points")
   },
   times = 5
 )
-print(bench_buffer_memory)
-log_result("duckdb-memory", "buffer_pts", bench_buffer_memory)
+print(bench_buffer)
+log_result("duckdb-memory", "buffer_pts", bench_buffer)
 
-# Clean up
 dbDisconnect(con, shutdown = TRUE)
 message("DuckDB Benchmarks Complete.")

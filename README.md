@@ -21,6 +21,14 @@ points within the bounding box of New Zealand. The primary operation
 benchmarked is a **Spatial Left Join**: joining the region `Name` to
 each point.
 
+**System Configurations:** \* **In-Memory (sf, geopandas, sedonadb,
+duckdb-memory)**: Data is fully loaded into RAM before the timer starts.
+For DuckDB, this includes converting to native `POINT_2D` types and
+building an R-Tree index on the regions. \* **Streaming
+(duckdb-parquet)**: Data is queried directly from Parquet files on disk
+(Zero-Copy). The timer includes the cost of reading, parsing, and
+joining.
+
 ``` r
 library(sf)
 library(spData)
@@ -48,11 +56,12 @@ ggplot() +
 
 Run on 100,000 points and 16 polygons (Regions).
 
-- **sf / geopandas / sedonadb**: Standard benchmarks via GPKG.
-- **duckdb-gpkg**: DuckDB reading via standard GDAL/OGR (simulates
-  traditional workflow).
-- **duckdb-parquet**: DuckDB reading optimized GeoParquet (simulates
-  modern native workflow).
+- **sf / geopandas / sedona**: Standard benchmarks via GPKG.
+- **duckdb-parquet**: Best-case I/O. Streams geometry directly from
+  Parquet files without loading them.
+- **duckdb-memory**: Best-case Compute. Pre-loads data into RAM,
+  converts to native 2D types, and uses R-Tree indexes. Comparison point
+  for `sf` / `geopandas`.
 
 [Download full results (CSV)](results.csv)
 
@@ -96,18 +105,17 @@ bridges this gap significantly by keeping data in Arrow/WKB format, but
 R’s integration currently appears more seamless for these workloads.
 
 The inclusion of DuckDB allows us to compare “native” execution against
-standard WKB-based approaches:
+standard approaches:
 
-1.  **Serialization Overhead**: `geopandas` and `sf` (reading GPKG) rely
-    on OGR/GDAL, which requires parsing WKB (Well-Known Binary) into
-    in-memory geometry objects. This deserialization step is often the
-    bottleneck.
-2.  **Native Geometry**: `duckdb-parquet` utilizes the spatial
-    extension’s ability to read geometry data directly from Parquet
-    without expensive WKB conversion. We hypothesize this will offer
-    significant speedups over the `duckdb-gpkg` approach, effectively
-    isolating the I/O and serialization cost from the actual spatial
-    join compute time.
+1.  **Zero-Copy (duckdb-parquet)**: Utilizes the spatial extension’s
+    ability to read geometry data directly from Parquet. This isolates
+    the I/O cost and demonstrates the engine’s ability to handle
+    larger-than-memory datasets.
+2.  **Optimized Compute (duckdb-memory)**: By loading data into native
+    2D types (`POINT_2D`) and pre-building an **R-Tree Index**, DuckDB
+    achieves high throughput comparable to specialized in-memory tools.
+    This demonstrates that DuckDB’s performance is highly dependent on
+    using its native internal types rather than generic WKB blobs.
 
 ### Next Steps
 

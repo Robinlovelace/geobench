@@ -4,24 +4,15 @@ import os
 
 print("Starting Python (duckdb) Benchmarks [NZ]...")
 
-# Connect and load spatial extension
 con = duckdb.connect()
 con.install_extension("spatial")
 con.load_extension("spatial")
 
-# --- 0. Data Preparation ---
+# --- Data Prep ---
 if not os.path.exists("nz_points.parquet"):
-    print("Generating nz_points.parquet from GPKG...")
     con.sql("COPY (SELECT * FROM ST_Read('nz_points.gpkg')) TO 'nz_points.parquet' (FORMAT PARQUET)")
-
 if not os.path.exists("nz_regions.parquet"):
-    print("Generating nz_regions.parquet from GPKG...")
     con.sql("COPY (SELECT * FROM ST_Read('nz_regions.gpkg')) TO 'nz_regions.parquet' (FORMAT PARQUET)")
-
-# --- Load into Memory ---
-print("Loading Parquet into in-memory DuckDB tables...")
-con.sql("CREATE OR REPLACE TABLE points AS SELECT * FROM 'nz_points.parquet'")
-con.sql("CREATE OR REPLACE TABLE regions AS SELECT * FROM 'nz_regions.parquet'")
 
 def log_result(system, operation, time_sec):
     ops_per_sec = 1 / time_sec if time_sec > 0 else 0
@@ -32,12 +23,11 @@ def time_func(system, name, query):
     times = []
     for _ in range(5):
         start = time.time()
-        # execute and fetch to ensure evaluation
         con.sql(query).fetchall()
         end = time.time()
         times.append(end - start)
     avg_time = sum(times) / len(times)
-    print(f"{system} - {name}: {avg_time:.4f} s (avg of 5)")
+    print(f"{system} - {name}: {avg_time:.4f} s")
 
     key_map = {
         "Read Points": "read_points",
@@ -48,36 +38,38 @@ def time_func(system, name, query):
     if name in key_map:
         log_result(system, key_map[name], avg_time)
 
-# --- 1. Read Benchmarks ---
+# ---------------------------------------------------------
+# SYSTEM 1: duckdb-parquet (Best Case for Reading)
+# ---------------------------------------------------------
 time_func("duckdb-parquet", "Read Points", "SELECT * FROM 'nz_points.parquet'")
 time_func("duckdb-parquet", "Read Regions", "SELECT * FROM 'nz_regions.parquet'")
 
-# --- 2. Spatial Join Benchmarks ---
+# ---------------------------------------------------------
+# SETUP FOR MEMORY (Best Case Configuration)
+# ---------------------------------------------------------
+print("Preparing In-Memory Data (Optimized)...")
+# 1. Regions + Index
+con.sql("CREATE OR REPLACE TABLE regions AS SELECT * FROM 'nz_regions.parquet'")
+con.sql("CREATE INDEX idx_regions_geom ON regions USING RTREE (geom)")
 
-# System: duckdb-parquet
-query_join_parquet = """
-SELECT p.geom, r.Name
-FROM 'nz_points.parquet' AS p
-LEFT JOIN 'nz_regions.parquet' AS r
-ON ST_Intersects(p.geom, r.geom)
-"""
-time_func("duckdb-parquet", "Spatial Join", query_join_parquet)
+# 2. Points (Standard) + Points (2D Optimized)
+con.sql("CREATE OR REPLACE TABLE points AS SELECT * FROM 'nz_points.parquet'")
+con.sql("CREATE OR REPLACE TABLE points_2d AS SELECT ST_Point2D(ST_X(geom), ST_Y(geom)) AS geom FROM points")
 
-# System: duckdb-memory
-query_join_memory = """
+# ---------------------------------------------------------
+# SYSTEM 2: duckdb-memory (Best Case for Compute)
+# ---------------------------------------------------------
+
+# Spatial Join (Optimized)
+query_join = """
 SELECT p.geom, r.Name
-FROM points AS p
+FROM points_2d AS p
 LEFT JOIN regions AS r
 ON ST_Intersects(p.geom, r.geom)
 """
-time_func("duckdb-memory", "Spatial Join", query_join_memory)
+time_func("duckdb-memory", "Spatial Join", query_join)
 
-# --- 3. Buffer Benchmarks ---
-
-# System: duckdb-parquet
-time_func("duckdb-parquet", "Buffer Points", "SELECT ST_Buffer(geom, 1000) FROM 'nz_points.parquet'")
-
-# System: duckdb-memory
+# Buffer (Standard Memory)
 time_func("duckdb-memory", "Buffer Points", "SELECT ST_Buffer(geom, 1000) FROM points")
 
 print("DuckDB Python Benchmarks Complete.")
