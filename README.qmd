@@ -10,6 +10,10 @@ Benchmarks for spatial data operations using the `spData::nz` dataset (New Zeala
 -   [sf (R)](scripts/bench_r.R)
 -   [geopandas (Python)](scripts/bench_py.py)
 -   [sedonadb (Python)](scripts/bench_sedona_py.py)
+-   [sedonadb (Python + Polars)](scripts/bench_sedona_polars.py)
+-   [sedonadb (R)](scripts/bench_sedona_r.R)
+-   [duckdb (R)](scripts/bench_duckdb_r.R)
+-   [duckdb (Python)](scripts/bench_duckdb_py.py)
 
 ## Experimental Setup
 
@@ -41,16 +45,26 @@ ggplot() +
 
 Run on 100,000 points and 16 polygons (Regions).
 
+- **sf / geopandas / sedonadb**: Standard benchmarks via GPKG.
+- **duckdb-gpkg**: DuckDB reading via standard GDAL/OGR (simulates traditional workflow).
+- **duckdb-parquet**: DuckDB reading optimized GeoParquet (simulates modern native workflow).
+
 [Download full results (CSV)](results.csv)
 
 ```{r plot-results, echo=FALSE, message=FALSE, warning=FALSE}
 if (file.exists("results.csv")) {
   library(ggplot2)
   results <- read.csv("results.csv")
-  results$system <- factor(results$system, 
-                           levels = c("sf", "geopandas", "sedonadb-sf", "sedonadb-pandas", "sedonadb-polars"),
+  results$system <- factor(results$system,
+                           levels = c("sf",
+                                      "geopandas",
+                                      "sedonadb-sf",
+                                      "sedonadb-pandas",
+                                      "sedonadb-polars",
+                                      "duckdb-gpkg",
+                                      "duckdb-parquet"),
                            ordered = TRUE)
-  
+
   ggplot(results, aes(x = system, y = ops_per_sec, fill = system)) +
     geom_col() +
     facet_wrap(~ operation, nrow = 1, scales = "free_y") +
@@ -64,14 +78,44 @@ if (file.exists("results.csv")) {
 }
 ```
 
+## Running the Benchmarks
+
+This repository includes a Docker submodule designed to handle the dependencies for R (sf, duckdb, sedonadb) and Python (geopandas, sedona, polars).
+
+**1. Build the Docker Image:**
+
+```bash
+cd docker_submodule
+docker build -t geobench .
+```
+
+**2. Run the Benchmarks:**
+
+```bash
+cd ..
+docker run --rm -ti --net=host -v ${PWD}:/home/rstudio/project geobench /bin/bash -c "cd /home/rstudio/project && ./scripts/run_all.sh"
+```
+
+**3. Render/Update README.md:**
+
+```bash
+docker run --rm -ti --net=host -v ${PWD}:/home/rstudio/project geobench /bin/bash -c "cd /home/rstudio/project && quarto render README.qmd"
+```
+
 ### Performance Hypothesis
 
 The results show `sedonadb-sf` (R) outperforming Python variants in spatial operations, particularly joins. We hypothesize this is due to efficient, low-overhead data transfer between R and the underlying Sedona/DataFusion engine (likely via `nanoarrow` or C-level pointers), whereas the standard Python path incurs significant cost deserializing WKB into Python Shapely objects. The `sedonadb-polars` workaround bridges this gap significantly by keeping data in Arrow/WKB format, but R's integration currently appears more seamless for these workloads.
+
+The inclusion of DuckDB allows us to compare "native" execution against standard WKB-based approaches:
+
+1.  **Serialization Overhead**: `geopandas` and `sf` (reading GPKG) rely on OGR/GDAL, which requires parsing WKB (Well-Known Binary) into in-memory geometry objects. This deserialization step is often the bottleneck.
+2.  **Native Geometry**: `duckdb-parquet` utilizes the spatial extension's ability to read geometry data directly from Parquet without expensive WKB conversion. We hypothesize this will offer significant speedups over the `duckdb-gpkg` approach, effectively isolating the I/O and serialization cost from the actual spatial join compute time.
 
 ### Next Steps
 
 1.  **Memory Profiling**: Analyze memory usage to verify object overhead in Python vs R.
 2.  **Scale Testing**: Run benchmarks on larger datasets (e.g., >1 million points) to assess scalability.
 3.  **Python Optimization**: Develop native Polars/Arrow integration in `sedona-db` Python bindings to eliminate serialization bottlenecks.
+4.  **Engine Comparison**: Deep dive into the performance differences between Sedona's Rust-based engine and DuckDB's vectorized execution engine for spatial joins.
 
 **Note**: These benchmarks are intended for illustrative purposes and may not be fully representative of complex, real-world use cases or performance at larger scales. For more comprehensive benchmarks comparing Sedona, DuckDB, and GeoPandas, we recommend checking out the official [Sedona Spatial Benchmarks](https://sedona.apache.org/spatialbench/single-node-benchmarks/).

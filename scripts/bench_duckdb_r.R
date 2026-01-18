@@ -112,7 +112,7 @@ query_join_parquet <- "
 SELECT p.geom, r.Name
 FROM 'nz_points.parquet' AS p
 LEFT JOIN 'nz_regions.parquet' AS r
-ON ST_Intersects(ST_GeomFromWKB(p.geom), ST_GeomFromWKB(r.geom))
+ON ST_Intersects(p.geom, r.geom)
 "
 
 bench_join_parquet <- microbenchmark(

@@ -9,6 +9,10 @@ Benchmarks for spatial data operations using the `spData::nz` dataset
 - [sf (R)](scripts/bench_r.R)
 - [geopandas (Python)](scripts/bench_py.py)
 - [sedonadb (Python)](scripts/bench_sedona_py.py)
+- [sedonadb (Python + Polars)](scripts/bench_sedona_polars.py)
+- [sedonadb (R)](scripts/bench_sedona_r.R)
+- [duckdb (R)](scripts/bench_duckdb_r.R)
+- [duckdb (Python)](scripts/bench_duckdb_py.py)
 
 ## Experimental Setup
 
@@ -44,9 +48,35 @@ ggplot() +
 
 Run on 100,000 points and 16 polygons (Regions).
 
+- **sf / geopandas / sedonadb**: Standard benchmarks via GPKG.
+- **duckdb-gpkg**: DuckDB reading via standard GDAL/OGR (simulates
+  traditional workflow).
+- **duckdb-parquet**: DuckDB reading optimized GeoParquet (simulates
+  modern native workflow).
+
 [Download full results (CSV)](results.csv)
 
 ![](README_files/figure-commonmark/plot-results-1.png)
+
+## Running the Benchmarks
+
+This repository includes a Docker submodule designed to handle the
+dependencies for R (sf, duckdb, sedonadb) and Python (geopandas, sedona,
+polars).
+
+**1. Build the Docker Image:**
+
+``` bash
+cd docker_submodule
+docker build -t geobench .
+```
+
+**2. Run the Benchmarks:**
+
+``` bash
+cd ..
+docker run --rm -ti --net=host -v ${PWD}:/home/rstudio/project geobench /bin/bash -c "cd /home/rstudio/project && ./scripts/run_all.sh"
+```
 
 ### Performance Hypothesis
 
@@ -59,6 +89,21 @@ WKB into Python Shapely objects. The `sedonadb-polars` workaround
 bridges this gap significantly by keeping data in Arrow/WKB format, but
 R’s integration currently appears more seamless for these workloads.
 
+The inclusion of DuckDB allows us to compare “native” execution against
+standard WKB-based approaches:
+
+1.  **Serialization Overhead**: `geopandas` and `sf` (reading GPKG) rely
+    on OGR/GDAL, which requires parsing WKB (Well-Known Binary) into
+    in-memory geometry objects. This deserialization step is often the
+    bottleneck.
+2.  **Native Geometry**: `duckdb-parquet` utilizes the spatial
+    extension’s ability to read geometry data directly from Parquet
+    without expensive WKB conversion (as seen in the benchmark code
+    where explicit `ST_GeomFromWKB` casts were removed). We hypothesize
+    this will offer significant speedups over the `duckdb-gpkg`
+    approach, effectively isolating the I/O and serialization cost from
+    the actual spatial join compute time.
+
 ### Next Steps
 
 1.  **Memory Profiling**: Analyze memory usage to verify object overhead
@@ -67,6 +112,9 @@ R’s integration currently appears more seamless for these workloads.
     million points) to assess scalability.
 3.  **Python Optimization**: Develop native Polars/Arrow integration in
     `sedona-db` Python bindings to eliminate serialization bottlenecks.
+4.  **Engine Comparison**: Deep dive into the performance differences
+    between Sedona’s Rust-based engine and DuckDB’s vectorized execution
+    engine for spatial joins.
 
 **Note**: These benchmarks are intended for illustrative purposes and
 may not be fully representative of complex, real-world use cases or
