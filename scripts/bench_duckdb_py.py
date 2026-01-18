@@ -38,38 +38,52 @@ def time_func(system, name, query):
     if name in key_map:
         log_result(system, key_map[name], avg_time)
 
-# ---------------------------------------------------------
-# SYSTEM 1: duckdb-parquet (Best Case for Reading)
-# ---------------------------------------------------------
+# ==============================================================================
+# SYSTEM 1: duckdb-parquet (Disk-Based / Zero-Copy)
+# ==============================================================================
+
+# 1. READ
 time_func("duckdb-parquet", "Read Points", "SELECT * FROM 'nz_points.parquet'")
 time_func("duckdb-parquet", "Read Regions", "SELECT * FROM 'nz_regions.parquet'")
 
-# ---------------------------------------------------------
-# SETUP FOR MEMORY (Best Case Configuration)
-# ---------------------------------------------------------
-print("Preparing In-Memory Data (Optimized)...")
-# 1. Regions + Index
-con.sql("CREATE OR REPLACE TABLE regions AS SELECT * FROM 'nz_regions.parquet'")
-con.sql("CREATE INDEX idx_regions_geom ON regions USING RTREE (geom)")
+# 2. SPATIAL JOIN
+query_join_pq = """
+SELECT p.geom, r.Name
+FROM 'nz_points.parquet' AS p
+LEFT JOIN 'nz_regions.parquet' AS r
+ON ST_Intersects(p.geom, r.geom)
+"""
+time_func("duckdb-parquet", "Spatial Join", query_join_pq)
 
-# 2. Points (Standard) + Points (2D Optimized)
+# 3. BUFFER
+time_func("duckdb-parquet", "Buffer Points", "SELECT ST_Buffer(geom, 1000) FROM 'nz_points.parquet'")
+
+
+# ==============================================================================
+# SYSTEM 2: duckdb-memory (In-Memory / Optimized)
+# ==============================================================================
+print("Preparing In-Memory Data (Optimized)...")
+# Load tables
+con.sql("CREATE OR REPLACE TABLE regions AS SELECT * FROM 'nz_regions.parquet'")
 con.sql("CREATE OR REPLACE TABLE points AS SELECT * FROM 'nz_points.parquet'")
+# Optimizations for Join
+con.sql("CREATE INDEX idx_regions_geom ON regions USING RTREE (geom)")
 con.sql("CREATE OR REPLACE TABLE points_2d AS SELECT ST_Point2D(ST_X(geom), ST_Y(geom)) AS geom FROM points")
 
-# ---------------------------------------------------------
-# SYSTEM 2: duckdb-memory (Best Case for Compute)
-# ---------------------------------------------------------
+# 1. READ (Select from Memory)
+time_func("duckdb-memory", "Read Points", "SELECT * FROM points")
+time_func("duckdb-memory", "Read Regions", "SELECT * FROM regions")
 
-# Spatial Join (Optimized)
-query_join = """
+# 2. SPATIAL JOIN (Optimized)
+query_join_mem = """
 SELECT p.geom, r.Name
 FROM points_2d AS p
 LEFT JOIN regions AS r
 ON ST_Intersects(p.geom, r.geom)
 """
-time_func("duckdb-memory", "Spatial Join", query_join)
+time_func("duckdb-memory", "Spatial Join", query_join_mem)
 
-# Buffer (Standard Memory)
+# 3. BUFFER (Standard)
 time_func("duckdb-memory", "Buffer Points", "SELECT ST_Buffer(geom, 1000) FROM points")
 
 print("DuckDB Python Benchmarks Complete.")

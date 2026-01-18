@@ -57,11 +57,11 @@ ggplot() +
 Run on 100,000 points and 16 polygons (Regions).
 
 - **sf / geopandas / sedona**: Standard benchmarks via GPKG.
-- **duckdb-parquet**: Best-case I/O. Streams geometry directly from
-  Parquet files without loading them.
-- **duckdb-memory**: Best-case Compute. Pre-loads data into RAM,
-  converts to native 2D types, and uses R-Tree indexes. Comparison point
-  for `sf` / `geopandas`.
+- **duckdb-parquet**: Streaming from disk. Shows the performance of
+  zero-copy queries directly on Parquet files.
+- **duckdb-memory**: In-Memory optimized. Shows the performance of
+  DuckDB when data is pre-loaded, indexed, and optimized for compute
+  (Native 2D types).
 
 [Download full results (CSV)](results.csv)
 
